@@ -7,7 +7,7 @@ A developer knowledge hub for snippets, commands, prompts, notes, files, images,
 Read tge following to get the full context of the project:
 
 -@context/project-overview.md
--@context/project-standards.md
+-@context/coding-standards.md
 -@context/ai-interaction.md
 -@context/current-feature.md
 
