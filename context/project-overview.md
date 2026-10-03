@@ -574,6 +574,13 @@ git switch -c lesson-01-setup
 
 ---
 
+### Screenshots
+
+Refer to the screenhots below as a base for the dashboard UI. does not need to be exact. Use it for a reference
+
+- @context/screenshots/dashboard-ui-main.png
+- @context/screenshots/dashboard-ui-drawer.png
+
 ## ❓ Open Questions
 
 - **Image vs File uploads on Free:** what size/storage cap applies to Free image uploads?
