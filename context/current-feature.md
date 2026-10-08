@@ -1,18 +1,27 @@
 # Current Feature
 
-## Dashboard UI Phase 2
+## Dashboard UI Phase 3
+
+Phase 3 of 3 for the dashboard UI layout: build the main area to the right of the sidebar, using data imported directly from the mock data file.
 
 ## Status
 
-Completed
+In Progress
 
 ## Goals
 
-<!-- Goals and requirements -->
+- Main area to the right of the sidebar
+- Recent collections
+- Pinned items
+- 10 most recent items
+- 4 stats cards at the top: number of items, collections, favorite items and favorite collections (not in the screenshot)
 
 ## Notes
 
-<!-- Any extra notes -->
+- Spec: @context/features/dashboard-phase-3-spec.md
+- Use @context/screenshots/dashboard-ui-main.png as a visual reference
+- Import data directly from @src/lib/mock-data.ts until the database is in place
+- Phase 1: @context/features/dashboard-phase-1-spec.md · Phase 2: @context/features/dashboard-phase-2-spec.md
 
 ## History
 

@@ -1,20 +1,7 @@
 import Link from "next/link";
-import {
-  ChevronDown,
-  Code,
-  File,
-  Folder,
-  Image,
-  Layers,
-  Link as LinkIcon,
-  Settings,
-  Sparkles,
-  Star,
-  StickyNote,
-  Terminal,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronDown, Folder, Layers, Settings, Star } from "lucide-react";
 
+import TypeIcon from "@/components/dashboard/TypeIcon";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Collapsible,
@@ -35,33 +22,14 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { COLLECTIONS, CURRENT_USER, ITEM_TYPES, ITEMS } from "@/lib/mock-data";
-
-const TYPE_ICONS: Record<string, LucideIcon> = {
-  Code,
-  Sparkles,
-  Terminal,
-  StickyNote,
-  File,
-  Image,
-  Link: LinkIcon,
-};
+import { getFavoriteCollections, getRecentCollections } from "@/lib/dashboard-data";
+import { CURRENT_USER, ITEM_TYPES } from "@/lib/mock-data";
 
 const RECENT_COLLECTIONS_LIMIT = 5;
 
-const lastUpdated = (collectionId: string) =>
-  Math.max(
-    0,
-    ...ITEMS.filter((item) => item.collectionIds.includes(collectionId)).map((item) =>
-      Date.parse(item.updatedAt),
-    ),
-  );
+const FAVORITE_COLLECTIONS = getFavoriteCollections();
 
-const FAVORITE_COLLECTIONS = COLLECTIONS.filter((collection) => collection.isFavorite);
-
-const RECENT_COLLECTIONS = [...COLLECTIONS]
-  .sort((a, b) => lastUpdated(b.id) - lastUpdated(a.id))
-  .slice(0, RECENT_COLLECTIONS_LIMIT);
+const RECENT_COLLECTIONS = getRecentCollections(RECENT_COLLECTIONS_LIMIT);
 
 const initials = CURRENT_USER.name
   .split(" ")
@@ -94,21 +62,18 @@ export default function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {ITEM_TYPES.map((type) => {
-                    const Icon = TYPE_ICONS[type.icon] ?? File;
-                    return (
-                      <SidebarMenuItem key={type.id}>
-                        <SidebarMenuButton
-                          tooltip={type.name}
-                          render={<Link href={`/items/${type.name.toLowerCase()}`} />}
-                        >
-                          <Icon style={{ color: type.color }} />
-                          <span>{type.name}</span>
-                        </SidebarMenuButton>
-                        <SidebarMenuBadge>{type.itemCount}</SidebarMenuBadge>
-                      </SidebarMenuItem>
-                    );
-                  })}
+                  {ITEM_TYPES.map((type) => (
+                    <SidebarMenuItem key={type.id}>
+                      <SidebarMenuButton
+                        tooltip={type.name}
+                        render={<Link href={`/items/${type.name.toLowerCase()}`} />}
+                      >
+                        <TypeIcon type={type} />
+                        <span>{type.name}</span>
+                      </SidebarMenuButton>
+                      <SidebarMenuBadge>{type.itemCount}</SidebarMenuBadge>
+                    </SidebarMenuItem>
+                  ))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </CollapsibleContent>
