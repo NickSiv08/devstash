@@ -1,0 +1,184 @@
+// Initial DevStash schema, based on the data model in context/project-overview.md. This will evolve.
+// Connection URLs live in prisma.config.ts (migrations) and src/lib/prisma.ts (runtime).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ContentType {
+  TEXT
+  FILE
+  URL
+}
+
+// ─────────────── Users & Auth (Auth.js adapter models) ───────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // hashed; null for OAuth-only users
+
+  isPro                Boolean @default(false)
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
+  accounts    Account[]
+  sessions    Session[]
+  items       Item[]
+  itemTypes   ItemType[]
+  collections Collection[]
+  tags        Tag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────── Core domain ───────────────
+
+model Item {
+  id          String      @id @default(cuid())
+  title       String
+  contentType ContentType
+  content     String?     @db.Text // TEXT types
+  fileUrl     String? // FILE types (R2 object key or URL)
+  fileName    String?
+  fileSize    Int? // bytes
+  url         String? // URL type
+  description String?
+  language    String? // snippet language for highlighting
+  isFavorite  Boolean     @default(false)
+  isPinned    Boolean     @default(false)
+  lastUsedAt  DateTime? // powers "Recently used"
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // No cascade: a type can't be deleted while items still use it.
+  typeId String
+  type   ItemType @relation(fields: [typeId], references: [id])
+
+  collections ItemCollection[]
+  tags        ItemTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, typeId])
+  @@index([userId, lastUsedAt])
+  @@index([userId, isPinned])
+  @@index([typeId])
+}
+
+model ItemType {
+  id       String  @id @default(cuid())
+  name     String
+  icon     String? // Lucide icon name, e.g. "Code"
+  color    String? // hex, e.g. "#3b82f6"
+  isSystem Boolean @default(false)
+
+  userId String? // null = system type
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items Item[]
+
+  // NULLs are distinct in Postgres, so this doesn't stop duplicate system types. Seed them idempotently.
+  @@unique([userId, name])
+}
+
+model Collection {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  isFavorite  Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items ItemCollection[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+}
+
+model ItemCollection {
+  itemId       String
+  collectionId String
+  addedAt      DateTime @default(now())
+
+  item       Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, collectionId])
+  @@index([collectionId])
+}
+
+model Tag {
+  id     String @id @default(cuid())
+  name   String
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items ItemTag[]
+
+  @@unique([userId, name])
+}
+
+model ItemTag {
+  itemId String
+  tagId  String
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, tagId])
+  @@index([tagId])
+}
