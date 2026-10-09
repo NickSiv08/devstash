@@ -1,18 +1,30 @@
 # Current Feature
 
-## Prisma + Neon PostgreSQL Setup
+## Seed Sample Data
+
+Rewrite the seed script (`prisma/seed.ts`) to fill the database with sample data for development and demos.
 
 ## Status
 
-Completed
+In Progress
 
 ## Goals
 
-<!-- Goals and requirements -->
+- Demo user: demo@devstash.io, "Demo User", password `12345678` hashed with bcryptjs (12 rounds), `isPro: false`, `emailVerified` set to the current date
+- 7 system item types (`isSystem: true`): snippet, prompt, command, note, file, image, link, with their Lucide icons and colors
+- 5 collections for the demo user, with their items:
+  - **React Patterns** (Reusable React patterns and hooks): 3 TypeScript snippets covering custom hooks, component patterns and utility functions
+  - **AI Workflows** (AI prompts and workflow automations): 3 prompts covering code review, documentation generation and refactoring
+  - **DevOps** (Infrastructure and deployment resources): 1 snippet (Docker or CI/CD config), 1 command (deployment script) and 2 links to real documentation URLs
+  - **Terminal Commands** (Useful shell commands for everyday development): 4 commands covering git, Docker, process management and package managers
+  - **Design Resources** (UI/UX resources and references): 4 links to real URLs covering CSS/Tailwind, component libraries, design systems and icon libraries
 
 ## Notes
 
-<!-- Any extra notes -->
+- Spec: @context/features/seed-spec.md
+- The existing seed file can be overwritten
+- The spec uses lowercase type names and `link` instead of `URL`. The seed must update the already-seeded types instead of adding duplicates.
+- Keep the seed safe to run more than once
 
 ## History
 
