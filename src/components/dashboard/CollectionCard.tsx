@@ -2,18 +2,17 @@ import { Star } from "lucide-react";
 
 import TypeIcon from "@/components/dashboard/TypeIcon";
 import { Card, CardContent } from "@/components/ui/card";
-import { getCollectionTypes } from "@/lib/dashboard-data";
-import type { Collection } from "@/lib/mock-data";
+import type { CollectionSummary } from "@/lib/db/collections";
 
 interface CollectionCardProps {
-  collection: Collection;
+  collection: CollectionSummary;
 }
 
 export default function CollectionCard({ collection }: CollectionCardProps) {
-  const types = getCollectionTypes(collection.id);
+  const { types } = collection;
 
   return (
-    <Card className="border-l-4 border-l-border" style={{ borderLeftColor: types[0]?.color }}>
+    <Card className="border-l-4 border-l-border" style={{ borderLeftColor: types[0]?.color ?? undefined }}>
       <CardContent className="space-y-3">
         <div>
           <div className="flex items-center gap-2">

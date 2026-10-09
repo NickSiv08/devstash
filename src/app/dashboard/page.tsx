@@ -3,18 +3,17 @@ import { Clock, Pin } from "lucide-react";
 import CollectionCard from "@/components/dashboard/CollectionCard";
 import ItemRow from "@/components/dashboard/ItemRow";
 import StatsCards from "@/components/dashboard/StatsCards";
-import {
-  getDashboardStats,
-  getPinnedItems,
-  getRecentCollections,
-  getRecentItems,
-} from "@/lib/dashboard-data";
+import { getDashboardStats, getPinnedItems, getRecentItems } from "@/lib/dashboard-data";
+import { getCollectionStats, getRecentCollections } from "@/lib/db/collections";
 
 const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;
 
-export default function DashboardPage() {
-  const recentCollections = getRecentCollections(RECENT_COLLECTIONS_LIMIT);
+export default async function DashboardPage() {
+  const [recentCollections, collectionStats] = await Promise.all([
+    getRecentCollections(RECENT_COLLECTIONS_LIMIT),
+    getCollectionStats(),
+  ]);
   const pinnedItems = getPinnedItems();
   const recentItems = getRecentItems(RECENT_ITEMS_LIMIT);
 
@@ -25,7 +24,13 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Your developer knowledge hub</p>
       </header>
 
-      <StatsCards stats={getDashboardStats()} />
+      <StatsCards
+        stats={{
+          ...getDashboardStats(),
+          collections: collectionStats.total,
+          favoriteCollections: collectionStats.favorites,
+        }}
+      />
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Collections</h2>

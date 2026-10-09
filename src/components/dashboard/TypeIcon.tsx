@@ -10,8 +10,6 @@ import {
   type LucideProps,
 } from "lucide-react";
 
-import type { ItemType } from "@/lib/mock-data";
-
 const TYPE_ICONS: Record<string, LucideIcon> = {
   Code,
   Sparkles,
@@ -23,10 +21,10 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
 };
 
 interface TypeIconProps extends Omit<LucideProps, "type"> {
-  type: ItemType | undefined;
+  type: { icon: string | null; color: string | null } | undefined;
 }
 
 export default function TypeIcon({ type, style, ...props }: TypeIconProps) {
-  const Icon = (type && TYPE_ICONS[type.icon]) || File;
-  return <Icon style={{ color: type?.color, ...style }} {...props} />;
+  const Icon = (type?.icon && TYPE_ICONS[type.icon]) || File;
+  return <Icon style={{ color: type?.color ?? undefined, ...style }} {...props} />;
 }
