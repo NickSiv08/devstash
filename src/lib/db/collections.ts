@@ -1,15 +1,5 @@
+import { ITEM_TYPE_SELECT, USER_FILTER, type ItemTypeSummary } from "@/lib/db/shared";
 import { prisma } from "@/lib/prisma";
-
-// Until auth is in place, the dashboard shows the seeded demo user's data.
-const DEMO_USER_EMAIL = "demo@devstash.io";
-const USER_FILTER = { user: { email: DEMO_USER_EMAIL } };
-
-export interface CollectionType {
-  id: string;
-  name: string;
-  icon: string | null;
-  color: string | null;
-}
 
 export interface CollectionSummary {
   id: string;
@@ -18,7 +8,7 @@ export interface CollectionSummary {
   isFavorite: boolean;
   itemCount: number;
   // Item types in the collection, most used first.
-  types: CollectionType[];
+  types: ItemTypeSummary[];
 }
 
 export interface CollectionStats {
@@ -26,8 +16,8 @@ export interface CollectionStats {
   favorites: number;
 }
 
-const typesByUsage = (types: CollectionType[]): CollectionType[] => {
-  const counts = new Map<string, { type: CollectionType; count: number }>();
+const typesByUsage = (types: ItemTypeSummary[]): ItemTypeSummary[] => {
+  const counts = new Map<string, { type: ItemTypeSummary; count: number }>();
   for (const type of types) {
     const entry = counts.get(type.id);
     if (entry) entry.count += 1;
@@ -43,7 +33,7 @@ export async function getRecentCollections(limit: number): Promise<CollectionSum
     take: limit,
     include: {
       items: {
-        select: { item: { select: { type: { select: { id: true, name: true, icon: true, color: true } } } } },
+        select: { item: { select: { type: { select: ITEM_TYPE_SELECT } } } },
       },
     },
   });

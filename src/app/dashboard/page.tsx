@@ -3,19 +3,20 @@ import { Clock, Pin } from "lucide-react";
 import CollectionCard from "@/components/dashboard/CollectionCard";
 import ItemRow from "@/components/dashboard/ItemRow";
 import StatsCards from "@/components/dashboard/StatsCards";
-import { getDashboardStats, getPinnedItems, getRecentItems } from "@/lib/dashboard-data";
 import { getCollectionStats, getRecentCollections } from "@/lib/db/collections";
+import { getItemStats, getPinnedItems, getRecentItems } from "@/lib/db/items";
 
 const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;
 
 export default async function DashboardPage() {
-  const [recentCollections, collectionStats] = await Promise.all([
+  const [recentCollections, collectionStats, pinnedItems, recentItems, itemStats] = await Promise.all([
     getRecentCollections(RECENT_COLLECTIONS_LIMIT),
     getCollectionStats(),
+    getPinnedItems(),
+    getRecentItems(RECENT_ITEMS_LIMIT),
+    getItemStats(),
   ]);
-  const pinnedItems = getPinnedItems();
-  const recentItems = getRecentItems(RECENT_ITEMS_LIMIT);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
@@ -26,8 +27,9 @@ export default async function DashboardPage() {
 
       <StatsCards
         stats={{
-          ...getDashboardStats(),
+          items: itemStats.total,
           collections: collectionStats.total,
+          favoriteItems: itemStats.favorites,
           favoriteCollections: collectionStats.favorites,
         }}
       />

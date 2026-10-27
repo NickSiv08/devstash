@@ -3,11 +3,10 @@ import { Pin, Star } from "lucide-react";
 import TypeIcon from "@/components/dashboard/TypeIcon";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getItemType } from "@/lib/dashboard-data";
-import type { Item } from "@/lib/mock-data";
+import type { ItemSummary } from "@/lib/db/items";
 
 interface ItemRowProps {
-  item: Item;
+  item: ItemSummary;
 }
 
 // Fixed locale and time zone so the server and client render the same date.
@@ -18,10 +17,10 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
 });
 
 export default function ItemRow({ item }: ItemRowProps) {
-  const type = getItemType(item.typeId);
+  const { type } = item;
 
   return (
-    <Card className="border-l-4 border-l-border" style={{ borderLeftColor: type?.color }}>
+    <Card className="border-l-4 border-l-border" style={{ borderLeftColor: type.color ?? undefined }}>
       <CardContent className="flex items-start gap-4">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
           <TypeIcon type={type} className="size-5" />
@@ -43,8 +42,8 @@ export default function ItemRow({ item }: ItemRowProps) {
             </div>
           )}
         </div>
-        <time dateTime={item.updatedAt} className="shrink-0 text-xs text-muted-foreground">
-          {DATE_FORMAT.format(new Date(item.updatedAt))}
+        <time dateTime={item.updatedAt.toISOString()} className="shrink-0 text-xs text-muted-foreground">
+          {DATE_FORMAT.format(item.updatedAt)}
         </time>
       </CardContent>
     </Card>

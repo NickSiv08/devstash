@@ -1,6 +1,6 @@
 # Current Feature
 
-## Dashboard Collections
+## Dashboard Items
 
 ## Status
 
@@ -24,3 +24,4 @@ Completed
 - **Dashboard UI Phase 3**: Built the dashboard main area with 4 stats cards (items, collections, favorite items and favorite collections, each with a tinted icon), the 6 most recent collections as cards showing their item types, pinned items and the 10 most recent items. Added the shadcn/ui Card and Badge components, a shared `TypeIcon` component, and `src/lib/dashboard-data.ts` for data derived from the mock data, which the sidebar now uses too.
 - **Prisma + Neon PostgreSQL Setup**: Added Prisma 7 with a Neon serverless PostgreSQL database. The initial schema (`prisma/schema.prisma`) covers users, the NextAuth models (Account, Session, VerificationToken), items, item types, collections and tags, with indexes and cascade deletes, and is applied through the first migration (`init`). `prisma.config.ts` runs migrations over the direct connection (`DIRECT_URL`), and `src/lib/prisma.ts` provides a shared client that uses the Neon adapter over the pooled `DATABASE_URL`. `prisma/seed.ts` seeds the 7 system item types (`npx prisma db seed`), and `scripts/db-test.ts` (`npm run db:test`) checks the connection, seed data, relations and cascade deletes.
 - **Dashboard Collections**: The recent collection cards in the dashboard main area now come from the Neon database through Prisma instead of the mock data. Added `src/lib/db/collections.ts` with `getRecentCollections` (item count and item types per collection, most-used first) and `getCollectionStats`, both fetched in the async dashboard page. Each card's border color comes from its most-used item type, and it shows an icon for each type in it. The collection stats cards use the database counts. Until auth is added, the queries read the seeded demo user's data.
+- **Dashboard Items**: The pinned and recent items in the dashboard main area now come from the Neon database through Prisma instead of the mock data. Added `src/lib/db/items.ts` with `getPinnedItems`, `getRecentItems` and `getItemStats`, and `src/lib/db/shared.ts` with the demo-user filter and item type shape shared with `collections.ts`. Each item card's icon and border color come from its item type, and it shows the item's tags. The pinned section is hidden when there are no pinned items, and all 4 stats cards now use database counts. Removed the unused mock helpers from `src/lib/dashboard-data.ts`, which now only serves the sidebar.
