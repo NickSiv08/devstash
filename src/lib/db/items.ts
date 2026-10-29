@@ -60,3 +60,26 @@ export async function getItemStats(): Promise<ItemStats> {
   ]);
   return { total, favorites };
 }
+
+export interface SidebarItemType extends ItemTypeSummary {
+  itemCount: number;
+}
+
+// The system types have no sort column, so they're listed in this order.
+const TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
+
+const typePosition = (name: string) => {
+  const index = TYPE_ORDER.indexOf(name);
+  return index === -1 ? TYPE_ORDER.length : index;
+};
+
+export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
+  const types = await prisma.itemType.findMany({
+    where: { isSystem: true },
+    select: { ...ITEM_TYPE_SELECT, _count: { select: { items: { where: USER_FILTER } } } },
+  });
+
+  return types
+    .map(({ _count, ...type }) => ({ ...type, itemCount: _count.items }))
+    .sort((a, b) => typePosition(a.name) - typePosition(b.name));
+}

@@ -2,7 +2,13 @@ import { cn } from "cn";
 import { FolderHeart, Folders, Layers, Star, type LucideIcon } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import type { DashboardStats } from "@/lib/dashboard-data";
+
+export interface DashboardStats {
+  items: number;
+  collections: number;
+  favoriteItems: number;
+  favoriteCollections: number;
+}
 
 interface StatsCardsProps {
   stats: DashboardStats;

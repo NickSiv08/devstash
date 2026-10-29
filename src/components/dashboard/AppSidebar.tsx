@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronDown, Folder, Layers, Settings, Star } from "lucide-react";
+import { ChevronDown, Folder, FolderOpen, Layers, Settings, Star } from "lucide-react";
 
 import TypeIcon from "@/components/dashboard/TypeIcon";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,21 +22,27 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { getFavoriteCollections, getRecentCollections } from "@/lib/dashboard-data";
-import { CURRENT_USER, ITEM_TYPES } from "@/lib/mock-data";
+import { getFavoriteCollections, getRecentCollections } from "@/lib/db/collections";
+import { getSidebarItemTypes } from "@/lib/db/items";
+import { CURRENT_USER } from "@/lib/mock-data";
 
 const RECENT_COLLECTIONS_LIMIT = 5;
 
-const FAVORITE_COLLECTIONS = getFavoriteCollections();
-
-const RECENT_COLLECTIONS = getRecentCollections(RECENT_COLLECTIONS_LIMIT);
+// Type names are stored singular and lowercase, e.g. "snippet" -> "Snippets".
+const typeLabel = (name: string) => `${name.charAt(0).toUpperCase()}${name.slice(1)}s`;
 
 const initials = CURRENT_USER.name
   .split(" ")
   .map((part) => part[0])
   .join("");
 
-export default function AppSidebar() {
+export default async function AppSidebar() {
+  const [itemTypes, favoriteCollections, recentCollections] = await Promise.all([
+    getSidebarItemTypes(),
+    getFavoriteCollections(),
+    getRecentCollections(RECENT_COLLECTIONS_LIMIT),
+  ]);
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -62,14 +68,11 @@ export default function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {ITEM_TYPES.map((type) => (
+                  {itemTypes.map((type) => (
                     <SidebarMenuItem key={type.id}>
-                      <SidebarMenuButton
-                        tooltip={type.name}
-                        render={<Link href={`/items/${type.name.toLowerCase()}`} />}
-                      >
+                      <SidebarMenuButton tooltip={typeLabel(type.name)} render={<Link href={`/items/${type.name}`} />}>
                         <TypeIcon type={type} />
-                        <span>{type.name}</span>
+                        <span>{typeLabel(type.name)}</span>
                       </SidebarMenuButton>
                       <SidebarMenuBadge>{type.itemCount}</SidebarMenuBadge>
                     </SidebarMenuItem>
@@ -90,36 +93,55 @@ export default function AppSidebar() {
             </SidebarGroupLabel>
             <CollapsibleContent>
               <SidebarGroupContent>
-                <p className="px-2 pt-2 pb-1 text-[0.7rem] font-medium tracking-wider text-sidebar-foreground/50 uppercase group-data-[collapsible=icon]:hidden">
-                  Favorites
+                {favoriteCollections.length > 0 && (
+                  <>
+                    <p className="px-2 pt-2 pb-1 text-[0.7rem] font-medium tracking-wider text-sidebar-foreground/50 uppercase group-data-[collapsible=icon]:hidden">
+                      Favorites
+                    </p>
+                    <SidebarMenu>
+                      {favoriteCollections.map((collection) => (
+                        <SidebarMenuItem key={collection.id}>
+                          <SidebarMenuButton tooltip={collection.name}>
+                            <Folder />
+                            <span>{collection.name}</span>
+                          </SidebarMenuButton>
+                          <SidebarMenuBadge>
+                            <Star className="size-4 fill-yellow-400 text-yellow-400" />
+                          </SidebarMenuBadge>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </>
+                )}
+
+                <p className="px-2 pt-4 pb-1 text-[0.7rem] font-medium tracking-wider text-sidebar-foreground/50 uppercase group-data-[collapsible=icon]:hidden">
+                  Recent
                 </p>
                 <SidebarMenu>
-                  {FAVORITE_COLLECTIONS.map((collection) => (
+                  {recentCollections.map((collection) => (
                     <SidebarMenuItem key={collection.id}>
                       <SidebarMenuButton tooltip={collection.name}>
                         <Folder />
                         <span>{collection.name}</span>
                       </SidebarMenuButton>
                       <SidebarMenuBadge>
-                        <Star className="size-4 fill-yellow-400 text-yellow-400" />
+                        <span
+                          className="size-2.5 rounded-full bg-sidebar-foreground/30"
+                          style={{ backgroundColor: collection.types[0]?.color ?? undefined }}
+                        />
                       </SidebarMenuBadge>
                     </SidebarMenuItem>
                   ))}
-                </SidebarMenu>
-
-                <p className="px-2 pt-4 pb-1 text-[0.7rem] font-medium tracking-wider text-sidebar-foreground/50 uppercase group-data-[collapsible=icon]:hidden">
-                  Recent
-                </p>
-                <SidebarMenu>
-                  {RECENT_COLLECTIONS.map((collection) => (
-                    <SidebarMenuItem key={collection.id}>
-                      <SidebarMenuButton tooltip={collection.name}>
-                        <Folder />
-                        <span>{collection.name}</span>
-                      </SidebarMenuButton>
-                      <SidebarMenuBadge>{collection.itemCount}</SidebarMenuBadge>
-                    </SidebarMenuItem>
-                  ))}
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      tooltip="View all collections"
+                      className="text-sidebar-foreground/70"
+                      render={<Link href="/collections" />}
+                    >
+                      <FolderOpen />
+                      <span>View all collections</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </CollapsibleContent>

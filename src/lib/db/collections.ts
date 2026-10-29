@@ -26,11 +26,11 @@ const typesByUsage = (types: ItemTypeSummary[]): ItemTypeSummary[] => {
   return [...counts.values()].sort((a, b) => b.count - a.count).map(({ type }) => type);
 };
 
-export async function getRecentCollections(limit: number): Promise<CollectionSummary[]> {
+const findCollections = async (args: { where?: { isFavorite: boolean }; take?: number }) => {
   const collections = await prisma.collection.findMany({
-    where: USER_FILTER,
+    where: { ...USER_FILTER, ...args.where },
     orderBy: { updatedAt: "desc" },
-    take: limit,
+    take: args.take,
     include: {
       items: {
         select: { item: { select: { type: { select: ITEM_TYPE_SELECT } } } },
@@ -38,7 +38,7 @@ export async function getRecentCollections(limit: number): Promise<CollectionSum
     },
   });
 
-  return collections.map(({ items, ...collection }) => ({
+  return collections.map(({ items, ...collection }): CollectionSummary => ({
     id: collection.id,
     name: collection.name,
     description: collection.description,
@@ -46,6 +46,14 @@ export async function getRecentCollections(limit: number): Promise<CollectionSum
     itemCount: items.length,
     types: typesByUsage(items.map(({ item }) => item.type)),
   }));
+};
+
+export async function getRecentCollections(limit: number): Promise<CollectionSummary[]> {
+  return await findCollections({ take: limit });
+}
+
+export async function getFavoriteCollections(): Promise<CollectionSummary[]> {
+  return await findCollections({ where: { isFavorite: true } });
 }
 
 export async function getCollectionStats(): Promise<CollectionStats> {
