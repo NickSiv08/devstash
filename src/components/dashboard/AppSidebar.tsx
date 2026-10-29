@@ -3,6 +3,7 @@ import { ChevronDown, Folder, FolderOpen, Layers, Settings, Star } from "lucide-
 
 import TypeIcon from "@/components/dashboard/TypeIcon";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
@@ -27,6 +28,9 @@ import { getSidebarItemTypes } from "@/lib/db/items";
 import { CURRENT_USER } from "@/lib/mock-data";
 
 const RECENT_COLLECTIONS_LIMIT = 5;
+
+// Types that are only available on the Pro plan.
+const PRO_TYPES = new Set(["file", "image"]);
 
 // Type names are stored singular and lowercase, e.g. "snippet" -> "Snippets".
 const typeLabel = (name: string) => `${name.charAt(0).toUpperCase()}${name.slice(1)}s`;
@@ -73,6 +77,14 @@ export default async function AppSidebar() {
                       <SidebarMenuButton tooltip={typeLabel(type.name)} render={<Link href={`/items/${type.name}`} />}>
                         <TypeIcon type={type} />
                         <span>{typeLabel(type.name)}</span>
+                        {PRO_TYPES.has(type.name) && (
+                          <Badge
+                            variant="outline"
+                            className="h-4 px-1.5 text-[0.6rem] font-semibold tracking-wider text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden"
+                          >
+                            PRO
+                          </Badge>
+                        )}
                       </SidebarMenuButton>
                       <SidebarMenuBadge>{type.itemCount}</SidebarMenuBadge>
                     </SidebarMenuItem>
