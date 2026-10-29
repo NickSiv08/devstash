@@ -1,10 +1,8 @@
 # Current Feature
 
-## Stats & Sidebar
-
 ## Status
 
-Completed
+Not Started
 
 ## Goals
 
@@ -26,3 +24,4 @@ Completed
 - **Dashboard Collections**: The recent collection cards in the dashboard main area now come from the Neon database through Prisma instead of the mock data. Added `src/lib/db/collections.ts` with `getRecentCollections` (item count and item types per collection, most-used first) and `getCollectionStats`, both fetched in the async dashboard page. Each card's border color comes from its most-used item type, and it shows an icon for each type in it. The collection stats cards use the database counts. Until auth is added, the queries read the seeded demo user's data.
 - **Dashboard Items**: The pinned and recent items in the dashboard main area now come from the Neon database through Prisma instead of the mock data. Added `src/lib/db/items.ts` with `getPinnedItems`, `getRecentItems` and `getItemStats`, and `src/lib/db/shared.ts` with the demo-user filter and item type shape shared with `collections.ts`. Each item card's icon and border color come from its item type, and it shows the item's tags. The pinned section is hidden when there are no pinned items, and all 4 stats cards now use database counts. Removed the unused mock helpers from `src/lib/dashboard-data.ts`, which now only serves the sidebar.
 - **Stats & Sidebar**: The sidebar now reads from the Neon database instead of the mock data. Added `getSidebarItemTypes` to `src/lib/db/items.ts` (system types with item counts, in the seed order) and `getFavoriteCollections` to `src/lib/db/collections.ts`, and made `AppSidebar` an async server component. Types show their icon and count and link to `/items/[typename]`, favorite collections keep their star, recent collections show a circle in the color of their most-used item type, and a "View all collections" link goes to `/collections`. The stats cards already used database counts. Removed `src/lib/dashboard-data.ts` and moved the `DashboardStats` type into `StatsCards`. The sidebar user area still uses the mock `CURRENT_USER` until auth is added.
+- **Add Pro Badge Sidebar**: The File and Image types in the sidebar now show a subtle uppercase "PRO" badge after their name, using the shadcn/ui `Badge` component with the `outline` variant (small, muted text). The Pro types are listed in a `PRO_TYPES` set in `AppSidebar`. The badge is hidden when the sidebar is collapsed to icons, and the item count stays on the right.
