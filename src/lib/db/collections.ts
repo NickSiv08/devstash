@@ -1,4 +1,5 @@
-import { ITEM_TYPE_SELECT, USER_FILTER, type ItemTypeSummary } from "@/lib/db/shared";
+import { USER_FILTER, type ItemTypeSummary } from "@/lib/db/shared";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export interface CollectionSummary {
@@ -16,14 +17,29 @@ export interface CollectionStats {
   favorites: number;
 }
 
-const typesByUsage = (types: ItemTypeSummary[]): ItemTypeSummary[] => {
-  const counts = new Map<string, { type: ItemTypeSummary; count: number }>();
-  for (const type of types) {
-    const entry = counts.get(type.id);
-    if (entry) entry.count += 1;
-    else counts.set(type.id, { type, count: 1 });
+// Item types per collection, most used first, counted in the database instead of loading every item.
+const findTypesByCollection = async (
+  collectionIds: string[],
+): Promise<Map<string, ItemTypeSummary[]>> => {
+  const typesByCollection = new Map<string, ItemTypeSummary[]>();
+  if (collectionIds.length === 0) return typesByCollection;
+
+  const rows = await prisma.$queryRaw<(ItemTypeSummary & { collectionId: string })[]>`
+    SELECT ic."collectionId", t.id, t.name, t.icon, t.color
+    FROM "ItemCollection" ic
+    JOIN "Item" i ON i.id = ic."itemId"
+    JOIN "ItemType" t ON t.id = i."typeId"
+    WHERE ic."collectionId" IN (${Prisma.join(collectionIds)})
+    GROUP BY ic."collectionId", t.id
+    ORDER BY ic."collectionId", COUNT(*) DESC, t.name
+  `;
+
+  for (const { collectionId, ...type } of rows) {
+    const types = typesByCollection.get(collectionId);
+    if (types) types.push(type);
+    else typesByCollection.set(collectionId, [type]);
   }
-  return [...counts.values()].sort((a, b) => b.count - a.count).map(({ type }) => type);
+  return typesByCollection;
 };
 
 const findCollections = async (args: { where?: { isFavorite: boolean }; take?: number }) => {
@@ -31,20 +47,17 @@ const findCollections = async (args: { where?: { isFavorite: boolean }; take?: n
     where: { ...USER_FILTER, ...args.where },
     orderBy: { updatedAt: "desc" },
     take: args.take,
-    include: {
-      items: {
-        select: { item: { select: { type: { select: ITEM_TYPE_SELECT } } } },
-      },
-    },
+    include: { _count: { select: { items: true } } },
   });
+  const typesByCollection = await findTypesByCollection(collections.map(({ id }) => id));
 
-  return collections.map(({ items, ...collection }): CollectionSummary => ({
+  return collections.map((collection): CollectionSummary => ({
     id: collection.id,
     name: collection.name,
     description: collection.description,
     isFavorite: collection.isFavorite,
-    itemCount: items.length,
-    types: typesByUsage(items.map(({ item }) => item.type)),
+    itemCount: collection._count.items,
+    types: typesByCollection.get(collection.id) ?? [],
   }));
 };
 
